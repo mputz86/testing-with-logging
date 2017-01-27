@@ -1,0 +1,30 @@
+<configuration debug="true" scan="true" scanPeriod="60 seconds">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <if condition='"true".equals(property("LOGSTASH_ENABLED"))'>
+        <then>
+            <appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+                <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                    <customFields>{"app_name":"${LOGSTASH_APP_NAME}"}</customFields>
+                </encoder>
+            </appender>
+        </then>
+    </if>
+
+    <!-- log only own log messages in debug level -->
+    <logger name="com.company" level="DEBUG"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+        <if condition='"true".equals(property("LOGSTASH_ENABLED"))'>
+            <then>
+                <appender-ref ref="stash"/>
+            </then>
+        </if>
+    </root>
+</configuration>
